@@ -1,6 +1,6 @@
+
 import { WarpAccount } from '#types/settings';
 import { getWarpAccounts } from '@settings';
-import { generateKeyPairSync } from 'node:crypto';
 
 interface WarpKeys {
     publicKey: string;
@@ -12,7 +12,6 @@ export async function fetchWarpAccounts(env: Env): Promise<WarpAccount[]> {
     const defaultWarpAccounts = getWarpAccounts();
 
     try {
-
         const warpKeys = [
             await generateKeyPair(),
             await generateKeyPair()
@@ -20,6 +19,7 @@ export async function fetchWarpAccounts(env: Env): Promise<WarpAccount[]> {
 
         for (const [index, key] of warpKeys.entries()) {
             const { config } = await fetchAccount(key);
+
             warpAccounts.push({
                 privateKey: key.privateKey,
                 warpIPv6: `${config.interface.addresses.v6}/128`,
@@ -27,7 +27,9 @@ export async function fetchWarpAccounts(env: Env): Promise<WarpAccount[]> {
                 publicKey: config.peers[0].public_key
             });
 
-            if (index === 0) await new Promise(resolve => setTimeout(resolve, 2000));
+            if (index === 0) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
         }
 
         await env.kv.put('warpAccounts', JSON.stringify(warpAccounts));
@@ -63,13 +65,17 @@ async function fetchAccount(key: WarpKeys): Promise<any> {
     });
 
     if (!response.ok) {
-        throw new Error(`API returned status ${response.status}: ${await response.text()}`);
+        throw new Error(
+            `API returned status ${response.status}: ${await response.text()}`
+        );
     }
 
     return response.json();
 }
 
 async function generateKeyPair(): Promise<WarpKeys> {
+    const { generateKeyPairSync } = await import('node:crypto');
+
     const { publicKey, privateKey } = generateKeyPairSync('x25519', {
         publicKeyEncoding: { type: 'spki', format: 'der' },
         privateKeyEncoding: { type: 'pkcs8', format: 'der' }
