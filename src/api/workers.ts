@@ -6,7 +6,8 @@ export async function deployWorkers(script: string) {
     const metadata = {
         main_module: 'worker.js',
         keep_bindings: ['kv_namespace'],
-        compatibility_date: new Date().toISOString().split('T')[0]
+        compatibility_date: new Date().toISOString().split('T')[0]و
+        compatibility_flags: ['nodejs_compat']
     };
     const uploadForm = new FormData();
     uploadForm.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
